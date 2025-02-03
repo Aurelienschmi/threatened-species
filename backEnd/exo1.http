@@ -4,3 +4,4 @@ GET https://restcountries.com/v3.1/all
 
 #### il faut mettre trois # pour separer les differentes requetes
 GET https://restcountries.com/v3.1/all?fields=name,translations,cca2
+
