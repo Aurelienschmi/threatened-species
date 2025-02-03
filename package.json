@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "axios": "^1.7.9",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
     "readme-md-generator": "^1.0.0"
   }
 }

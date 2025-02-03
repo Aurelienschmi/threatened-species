@@ -1,42 +1,28 @@
-<!DOCTYPE html>
+
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animaux menacés par pays</title>
+    <title>Accueil</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Animaux menacés par pays</h1>
-        <form action="/" method="GET">
-            <select name="country" id="country" onchange="this.form.submit()">
-                <option value="">Sélectionnez un pays</option>
-                <% countries.forEach(function(country) { %>
-                    <option value="<%= country %>" <%= country === selectedCountry ? 'selected' : '' %>><%= country %></option>
-                <% }); %>
-            </select>
-        </form>
-        <input type="text" id="search" placeholder="Rechercher un animal..." onkeyup="filterAnimals()">
-        <div class="grid">
-            <% animals.forEach(function(animal) { %>
-                <div class="card" data-name="<%= animal.name.toLowerCase() %>">
-                    <img src="<%= animal.image %>" alt="<%= animal.name %>">
-                    <h2><%= animal.name %></h2>
-                    <p><%= animal.status %></p>
-                </div>
-            <% }); %>
-        </div>
-    </div>
-    <script>
-        function filterAnimals() {
-            let input = document.getElementById("search").value.toLowerCase();
-            let cards = document.querySelectorAll(".card");
-            cards.forEach(card => {
-                let name = card.getAttribute("data-name");
-                card.style.display = name.includes(input) ? "block" : "none";
-            });
-        }
-    </script>
+    <h1>Bienvenue sur l'API des animaux</h1>
+    <nav>
+        <ul>
+          <li><a href="/animals/FR">Les animaux de France</a></li>
+          <li><a href="/animals/ES">Les animaux d'Espagne</a></li>
+          <li><a href="/country">Pays</a></li>
+        </ul>
+    </nav>
+
+    
+    <select name="countries" id="country-select">
+        <option value="">--Please choose a country--</option>
+        <% apiPays.forEach(country => { %>
+            <option value="<%= country.cca2 %>"><%= country.name.common %></option>
+        <% }); %>
+    </select>
+      
 </body>
 </html>
