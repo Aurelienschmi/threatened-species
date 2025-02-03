@@ -28,7 +28,7 @@ npm i
 
 ## Author
 
-👤 **Gabin, Louis,Ziyad,Ambre**
+👤 **Gabin, Louis,Ziyad,Ambre(Les meilleurs)**
 
 
 ## Show your support
