@@ -9,7 +9,6 @@ async function getApi(pathURL) {
     return data;
 }
 
-
 app.get('/', (req, res) => {
   res.send("hello world");
 });
@@ -17,10 +16,25 @@ app.get('/', (req, res) => {
 app.get('/country', (req, res) => {
     getApi('https://restcountries.com/v3.1/all?fields=name,translations,cca2').then(data => {
         data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+        // search details of a country
+        for (let i = 0; i < data.length; i++) {
+
+            console.log(data[i].cca2);
+            
+
+        }
+
         res.send(data);
     });
 });
-app.
+
+app.get('/animals', (req, res) => {
+    getApi('').then(data => {
+        data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        res.send(data);
+    });
+});
 app.listen(3000, () => {
   console.log('Server listening on port 3000');
 });
