@@ -23,21 +23,7 @@
 ## Install
 
 ```sh
-npm install
-
-npm install axios
-
-npm install express
-
-nmp install ejs
-
-npm install -g nodemon
-
-npm init -y
-
-npm i readme-md-generator
-
-npx readme-md-generator
+npm i
 ```
 
 ## Author
