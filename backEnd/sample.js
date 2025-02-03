@@ -29,6 +29,14 @@ app.get('/animal-FR', (req, res) => {
     })
 });
 
+app.get('/test', async (req, res) => {
+  try {
+    const data = await getApi('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+    return res.json(data); 
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
 
 app.get('/animals', (req, res) => {
 
@@ -37,9 +45,21 @@ app.get('/animals', (req, res) => {
         let dataCountryCode = [];
 
 
-        getApiWithAuthorization(`https://api.iucnredlist.org/api/v4/countries/FR`).then(dataAu => {
-            console.log(dataAu);
+        data.map((item, index) => { 
+
+            getApiWithAuthorization(`https://api.iucnredlist.org/api/v4/countries/FR`).then(dataAu => {
+                dataCountryCode.push(dataAu);
+            });
+
         });
+
+
+        setTimeout(() => {
+            dataCountryCode.map((item, index) => {
+                console.log(item);
+                res.send(item);
+            });
+        }, 3000);
 
         // data.map(country => {
         //     dataCountryCode.push(getApiWithAuthorization(`https://api.iucnredlist.org/api/v4/countries/${country.cca2}`));
@@ -47,11 +67,18 @@ app.get('/animals', (req, res) => {
         // });
 
         console.log("promises");
+        console.log(dataCountryCode)
+        
+
+
+        console.log("promises");
         dataCountryCode.map((item, index) => {
             console.log(item);
         });
 
-        res.send(data);
+
+
+        res.send(dataCountryCode);
     })
 });
 
