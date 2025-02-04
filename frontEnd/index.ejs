@@ -22,8 +22,8 @@
             </li>
             <li>
                 <select name="number" id="number-select">
-                    <option value="5" selected>5</option>
-                    <% for (let i=6; i <=15; i++) { %>
+                    <option value="1" selected>1</option>
+                    <% for (let i=2; i <=10; i++) { %>
                         <option value="<%= i %>">
                             <%= i %>
                         </option>
@@ -66,7 +66,7 @@
                             const listItem = document.createElement('li');
                             listItem.innerHTML = `
                                 <strong>Nom scientifique :</strong> <a href="${animal.url}" target="_blank"><em>${animal.scientific_name}</em></a>  <br>
-                                <strong>Nom authority :</strong> ${animal.authority} <br>
+                                <strong>Nom autoritaire :</strong> ${animal.authority} <br>
                                 <strong>Possiblement éteint :</strong> ${animal.possibly_extinct ? 'Oui' : 'Non'} <br>
                                 <strong>Possiblement éteint à l'état sauvage :</strong> ${animal.possibly_extinct_in_the_wild ? 'Oui' : 'Non'} <br>
                             `;
