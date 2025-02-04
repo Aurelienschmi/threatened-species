@@ -1,43 +1,104 @@
+/* Applique une police élégante et un fond blanc cassé */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: "Georgia", serif; /* Style proche de "Exemple de texte" */
+    background-color: #FAF3E0; /* Blanc cassé */
     margin: 0;
     padding: 20px;
     text-align: center;
+    color: #2C3E50; /* Texte gris foncé pour un bon contraste */
 }
 
+/* Titre principal */
 h1 {
-    color: #333;
+    color: #3E2C50; /* Vert sapin foncé */
+    font-size: 28px;
+    font-style: italic;
 }
 
+/* Barre de navigation */
 nav {
-    background-color: #007BFF;
-    padding: 10px;
-    border-radius: 5px;
+    background-color: #1B3A2D; /* Vert sapin */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
 }
 
+/* Liste des éléments dans la navbar */
 nav ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 20px;
 }
 
+/* Élément de la navbar */
 nav ul li {
     display: inline;
 }
 
+/* Liens de navigation */
 nav ul li a {
     color: white;
     text-decoration: none;
     font-size: 18px;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-radius: 5px;
     transition: background 0.3s;
 }
 
 nav ul li a:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* Sélecteurs de pays et de nombre */
+select {
+    text-align: center;
+    text-align-last: center;
+    display: block;
+    margin: 0 auto;
+    width: 250px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px solid #1B3A2D; /* Bordure verte pour uniformité */
+    background-color: #FFF;
+    font-size: 16px;
+    color: #1B3A2D;
+    font-family: "Georgia", serif;
+    appearance: none; /* Supprime le style par défaut */
+    cursor: pointer;
+}
+
+/* Style des options du select */
+select option {
+    text-align: center;
+    background-color: #FFF;
+    color: #1B3A2D;
+    font-family: "Georgia", serif;
+}
+
+/* Conteneurs d'informations */
+#country-info, #animal-info {
+    background: #FFF;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+/* Liste des animaux */
+#animal-list {
+    list-style: none;
+    padding: 0;
+}
+
+#animal-list li {
+    background: #F1E8D9; /* Beige doux */
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }

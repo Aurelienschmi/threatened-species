@@ -10,7 +10,7 @@
 
 > We have separated the BackEnd and the Frontend in two different cases.
 
-> The BackEnd manages the recuperation of all the datas (countries https://restcountries.com/v3.1/all?fields=name,translations,cca2 and spieces threatened species by countries iucnredlist.org/api/v4/countries/).
+> The BackEnd manages the recuperation of all the datas (countries https://restcountries.com/v3.1/all?fields=name,translations,cca2 and spieces threatened species by countries http://iucnredlist.org/api/v4/countries/).
 
 > The FrontEnd manages the display for users
 
@@ -23,26 +23,12 @@
 ## Install
 
 ```sh
-npm install
-
-npm install axios
-
-npm install express
-
-nmp install ejs
-
-npm install -g nodemon
-
-npm init -y
-
-npm i readme-md-generator
-
-npx readme-md-generator
+npm i
 ```
 
 ## Author
 
-👤 **Gabin, Louis,Ziyad,Ambre**
+👤 **Gabin, Louis,Ziyad,Ambre(Les meilleurs)**
 
 
 ## Show your support

@@ -7,37 +7,79 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>Bienvenue sur l'API des animaux</h1>
+    <h1>Bienvenue sur la liste des espèces menacées</h1>
     <nav>
-        <ul>
-          <li><a href="/animals/FR">Les animaux de France</a></li>
-          <li><a href="/animals/ES">Les animaux d'Espagne</a></li>
-          <li><a href="/country">Pays</a></li>
+        <ul>          
+          <li><select name="countries" id="country-select" onchange="handleCountryChange()">
+            <option value=""> Choisissez un pays</option>
+            <% apiPays.forEach(country => { %>
+                <option value="<%= country.name.common %>" codeCountry="<%= country.cca2 %>"><%= country.name.common %></option>        <% }); %>
+        </select></li> 
+
+        <li><select name="number" id="number-select" onchange="handleNumberChange()">
+            <option value="6"> Nombre d'espèces </option>
+            <% for (let i = 5; i <= 15; i++) { %>
+                <option value="<%= i %>"><%= i %></option>
+            <% } %>
+        </select></li>  
         </ul>
     </nav>
 
     
-    <select name="countries" id="country-select" onchange="handleCountryChange()">
-        <option value="">--Please choose a country--</option>
-        <% apiPays.forEach(country => { %>
-            <option value="<%= country %>"><%= country %></option>
-        <% }); %>
-    </select>
+
 
     <div id="country-info">
-        <h2>Informations sur le pays</h2>
+        <h2>Informations sur le pays :</h2>
     </div>
+
+    <div id="animal-info">
+        <h2>Informations sur les espèces menacées :</h2>
+        <ul id="animal-list">
+            <img id="no-data-image" src="/image/vraiFleur.png" alt="Aucune donnée disponible" style="width: 600; display: block; margin: 0 auto;">
+        </ul>
+    </div>
+
 
     <script>
         function handleCountryChange() {
             const select = document.getElementById('country-select');
-            const selectedValue = select.value;
+            const selectedOption = select.options[select.selectedIndex]
+            const selectedValue = selectedOption.getAttribute('codeCountry');
             if (selectedValue) {
                 alert('Selected country value: ' + selectedValue);
-            }else
-            { 
-                alert('Please choose a country');
+                // API:
+                fetchAnimals(selectedValue);
+
+            } else {
+                alert('Choisissez un Pays');
             }
+        }
+
+        function fetchAnimals(countryCode) {
+            fetch(`/animals/${countryCode}/${document.getElementById('number-select').value}`)
+                .then(response => response.json())
+                .then(data => {
+                    const animalInfoDiv = document.getElementById('animal-info');
+                    animalInfoDiv.innerHTML = JSON.stringify(data, null, 2); // Affiche les données JSON formatées
+
+                    data.forEach(animal => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                        <strong>Nom :</strong> ${animal.name} <br>
+                        <strong>Statut :</strong> ${animal.status} <br>
+                        <strong>Description :</strong> ${animal.description || 'Aucune description disponible.'}
+                    `;
+                    if (animalList !== null || animalList !== undefined) {  
+                        animalList.appendChild(listItem);
+                    }
+                        
+                })
+                
+                .catch(error => {
+                    console.error('Error fetching animal data:', error);
+                });
+
+            });
         }
     </script>
       
