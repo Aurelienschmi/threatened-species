@@ -12,7 +12,7 @@
     <nav>
         <ul style="display: flex; align-items: center;">
             <li>
-                <select name="countries" id="country-select" onchange="handleCountryChange()">
+                <select name="countries" id="country-select">
                     <% apiPays.forEach(country=> { %>
                         <option value="<%= country.name.common %>" codeCountry="<%= country.cca2 %>">
                             <%= country.name.common %>
