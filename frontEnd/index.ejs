@@ -1,4 +1,3 @@
-
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -19,9 +18,13 @@
     
     <select name="countries" id="country-select">
         <option value="">--Please choose a country--</option>
-        <% apiPays.forEach(country => { %>
-            <option value="<%= country.cca2 %>"><%= country.name.common %></option>
-        <% }); %>
+        <% if (typeof apiPays !== 'undefined') { %>
+            <% apiPays.forEach(country => { %>
+                <% if (country.name && country.name.common) { %>
+                    <option value="<%= country.cca2 %>"><%= country.name.common %></option>
+                <% } %>
+            <% }); %>
+        <% } %>
     </select>
       
 </body>
