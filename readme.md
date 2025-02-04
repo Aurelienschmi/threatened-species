@@ -16,9 +16,9 @@
 
 > .env with API_KEY
 
-### 🏠 [Homepage](http://10.0.10.12:3000/)
+### 🏠 [Homepage](http://localhost:3000/)
 
-### ✨ [Demo](http://10.0.10.12:3000/)
+### ✨ [Demo](http://localhost:3000/)
 
 ## Install
 
@@ -27,11 +27,11 @@ npm i
 ```
 
 ```sh
-nodemon ./backEnd/sample.js
+node backEnd/sample.js
 ```
 ## Author
 
-👤 **Gabin, Louis,Ziyad,Ambre(Les meilleurs)**
+👤 **Quentin, Gabriel, Aurelien, Hugo**
 
 
 ## Show your support
