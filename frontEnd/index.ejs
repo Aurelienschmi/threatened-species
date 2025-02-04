@@ -17,7 +17,7 @@
                         <option value="<%= country.name.common %>" codeCountry="<%= country.cca2 %>">
                             <%= country.name.common %>
                         </option>
-                        <% }); %>
+                    <% }); %>
                 </select>
             </li>
             <li>
@@ -27,7 +27,7 @@
                         <option value="<%= i %>">
                             <%= i %>
                         </option>
-                        <% } %>
+                    <% } %>
                 </select>
             </li>
             <li>
@@ -44,7 +44,6 @@
         <h2>Informations sur les espèces menacées :</h2>
         <ul id="animal-list">
         </ul>
-
     </div>
 
     <script>
@@ -71,9 +70,10 @@
                         data.forEach(animal => {
                             const listItem = document.createElement('li');
                             listItem.innerHTML = `
-                                <strong>Nom scientifique :</strong> <em>${animal.scientific_name}</em> <br>
+                                <strong>Nom scientifique :</strong> <a href="${animal.url}" target="_blank"><em>${animal.scientific_name}</em></a>  <br>
                                 <strong>Nom authority :</strong> ${animal.authority} <br>
-                                <strong>URL pour avoir plus de données :</strong> https://www.iucnssg.org <br>
+                                <strong>Possiblement éteint :</strong> ${animal.possibly_extinct ? 'Oui' : 'Non'} <br>
+                                <strong>Possiblement éteint à l'état sauvage :</strong> ${animal.possibly_extinct_in_the_wild ? 'Oui' : 'Non'} <br>
                             `;
                             if (animalList !== null || animalList !== undefined) {
                                 animalList.appendChild(listItem);

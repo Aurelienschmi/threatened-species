@@ -98,6 +98,24 @@ app.get("/animal-FR", (req, res) => {
 });
 
 
+async function findAnimalWithId(idAnimal) {
+    try {
+        const dataAnimal = await getApiWithAuthorization(
+            `https://api.iucnredlist.org/api/v4/assessment/${idAnimal}`
+        );
+        return {
+            scientific_name: dataAnimal.taxon.scientific_name,
+            authority: dataAnimal.taxon.authority,
+            url: dataAnimal.url,
+            possibly_extinct: dataAnimal.possibly_extinct,
+            possibly_extinct_in_the_wild: dataAnimal.possibly_extinct_in_the_wild,
+        };
+    } catch (error) {
+        console.log("Server error");
+        return null;
+    }
+}
+
 app.get("/animals/:pays/:limiteAPI", async (req, res) => {
     const pays = req.params.pays;
     const limiteAPI = req.params.limiteAPI;
@@ -110,17 +128,10 @@ app.get("/animals/:pays/:limiteAPI", async (req, res) => {
             (item) => item.assessment_id
         );
 
-
         const animalPromises = assessmentIds.slice(0, limiteAPI).map(idAnimal => findAnimalWithId(idAnimal));
         listAnimal = await Promise.all(animalPromises);
 
-        listAnimal.forEach(animal => {
-            console.log(animal);
-        });
-
         res.send(listAnimal);
-        
-        
     } catch (error) {
         if (error.response) {
             if (error.response.status === 429) {
@@ -134,24 +145,7 @@ app.get("/animals/:pays/:limiteAPI", async (req, res) => {
             res.status(500).send("Server error");
         }
     }
-    
 });
-
-async function findAnimalWithId(idAnimal) {
-    try {
-        const dataAnimal = await getApiWithAuthorization(
-            `https://api.iucnredlist.org/api/v4/assessment/${idAnimal}`
-        );
-        console.log(dataAnimal.taxon.scientific_name);
-        return {scientific_name: dataAnimal.taxon.scientific_name, 
-          authority: dataAnimal.taxon.authority
-        
-        };
-    } catch (error) {
-        console.log("Server error");
-        return null;
-    }
-}
 
 app.get('/country', (req, res) => {
     const language = req.query.language || req.headers['accept-language'].split(',')[0];
