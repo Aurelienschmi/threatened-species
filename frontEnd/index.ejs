@@ -82,14 +82,11 @@
                         
                         animalList.innerHTML = '';
                         data.forEach(animal => {
-
-                            // il faut suppriemr les données précédentes
-                            
-
-
                             const listItem = document.createElement('li');
                             listItem.innerHTML = `
                                 <strong>Nom scientifique :</strong> <em>${animal.scientific_name}</em> <br>
+                                <strong>Nom authority :</strong> ${animal.authority} <br>
+                                <strong>URL pour avoir plsu de données :</strong> https://www.iucnssg.org <br>
                             `;
                             
                             if (animalList !== null || animalList !== undefined) {

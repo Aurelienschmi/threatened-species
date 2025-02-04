@@ -143,7 +143,10 @@ async function findAnimalWithId(idAnimal) {
             `https://api.iucnredlist.org/api/v4/assessment/${idAnimal}`
         );
         console.log(dataAnimal.taxon.scientific_name);
-        return {scientific_name: dataAnimal.taxon.scientific_name};
+        return {scientific_name: dataAnimal.taxon.scientific_name, 
+          authority: dataAnimal.taxon.authority
+        
+        };
     } catch (error) {
         console.log("Server error");
         return null;
