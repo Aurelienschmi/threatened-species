@@ -110,6 +110,7 @@ app.get("/animals/:pays/:limiteAPI", async (req, res) => {
             (item) => item.assessment_id
         );
 
+
         const animalPromises = assessmentIds.slice(0, limiteAPI).map(idAnimal => findAnimalWithId(idAnimal));
         listAnimal = await Promise.all(animalPromises);
 

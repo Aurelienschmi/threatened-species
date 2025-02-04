@@ -14,11 +14,11 @@
 
 > The FrontEnd manages the display for users
 
-> 
+> .env with API_KEY
 
-### 🏠 [Homepage](index.ejs)
+### 🏠 [Homepage](http://10.0.10.12:3000/)
 
-### ✨ [Demo](http://10.0.10.42:3000/)
+### ✨ [Demo](http://10.0.10.12:3000/)
 
 ## Install
 
@@ -26,6 +26,9 @@
 npm i
 ```
 
+```sh
+nodemon ./backEnd/sample.js
+```
 ## Author
 
 👤 **Gabin, Louis,Ziyad,Ambre(Les meilleurs)**

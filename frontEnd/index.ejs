@@ -42,12 +42,12 @@
         <h2>Informations sur les espèces menacées :</h2>
         <ul id="animal-list">
             <!-- Image affichée par défaut si aucune donnée -->
-            <li><img id="no-data-image" src="/image/vraiFleur.png" alt="Aucune donnée disponible"
-                    style="width: 600px; display: block; margin: 0 auto;"></li>
+
         </ul>
+        <img id="no-data-image" src="/image/vraiFleur.png" alt="Aucune donnée disponible"
+        style="width: 600px; display: block; margin: 0 auto;">
 
         <!-- Liste des animaux, cachée au départ -->
-        <ul id="animal-list" style="display: none;"></ul>
 
     </div>
 
@@ -58,12 +58,11 @@
             const selectedOption = select.options[select.selectedIndex]
             const selectedValue = selectedOption.getAttribute('codeCountry');
             if (selectedValue) {
-                alert('Selected country value: ' + selectedValue);
                 // API:
                 fetchAnimals(selectedValue);
 
             } else {
-                alert('Choisissez un Pays');
+                alert('Veuillez sélectionner un pays');
             }
         }
 
@@ -73,7 +72,7 @@
                 .then(data => {
                     const animalList = document.getElementById('animal-list');
                     const noDataImage = document.getElementById('no-data-image');
-                    animalList.innerHTML = JSON.stringify(data, null, 2); // Affiche les données JSON formatées
+                    //animalList.innerHTML = JSON.stringify(data, null, 2); // Affiche les données JSON formatées
 
                     console.log(data)
                     if (data.length > 0) {
@@ -82,30 +81,12 @@
 
                         data.forEach(animal => {
 
-                            console.log("mmmm")
-                            console.log(animal)
-                            const taxon = animal.taxon;
-                            const assessments = animal.assessments;
-
-                            const commonNames = taxon.common_names
-                                .filter(name => name.main)
-                                .map(name => `${name.name} (${name.language})`)
-                                .join(", ");
-
-                            const assessmentsList = assessments.map(a => `
-                                <li>
-                                    <a href="${a.url}" target="_blank">Évaluation ${a.year_published} (${a.scopes.map(s => s.description.en).join(", ")})</a>
-                                </li>`).join("");
-
 
                             const listItem = document.createElement('li');
                             listItem.innerHTML = `
                                 <strong>Nom scientifique :</strong> <em>${animal.scientific_name}</em> <br>
-                                <strong>Nom scientifique :</strong> <em>${taxon.scientific_name}</em> <br>
-                                <strong>Noms communs :</strong> ${commonNames || "Non disponible"} <br>
-                                <strong>Classification :</strong> ${taxon.kingdom_name} > ${taxon.phylum_name} > ${taxon.class_name} > ${taxon.order_name} > ${taxon.family_name} <br>
-                                <strong>Évaluations IUCN :</strong> <ul>${assessmentsList || "<li>Aucune donnée</li>"}</ul>
                             `;
+                            
                             if (animalList !== null || animalList !== undefined) {
                                 animalList.appendChild(listItem);
                             }
