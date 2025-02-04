@@ -43,7 +43,7 @@ async function getApiWithAuthorization(pathURL) {
     const response = await axios.get(pathURL, {
         headers: {
             accept: "application/json",  
-            Authorization: dotenv.API_KEY,
+            Authorization: process.env.API_KEY,
         },
     });
 
@@ -56,15 +56,21 @@ async function getApi(pathURL) {
 }
 
 app.get('/', (req, res) => {
-
+    const language = req.query.language || req.headers['accept-language'].split(',')[0];
+    const translationKey = languageMap[language] || language;
     getApi('https://restcountries.com/v3.1/all?fields=name,translations,cca2').then(data => {
-        data.sort((a, b) => a.name.common.localeCompare(b.name.common));
         const updatedData = data.map(country => {
-            return {
-            ...country,
-            translationFra: country.translations?.fra?.common || ''
-            };
+            const translation = country.translations?.[translationKey];
+            if (translation) {
+                return {
+                    ...country,
+                    name: { common: translation.common || country.name.common, official: translation.official || country.name.official }
+                };
+            } else {
+                return country;
+            }
         });
+        updatedData.sort((a, b) => a.name.common.localeCompare(b.name.common));
         res.render('index', {apiPays: updatedData}); // .name.common
     });
     
@@ -95,8 +101,6 @@ app.get("/animal-FR", (req, res) => {
 app.get("/animals/:pays/:limiteAPI", async (req, res) => {
     const pays = req.params.pays;
     const limiteAPI = req.params.limiteAPI;
-    console.log("ddddddddddddddddddddddddddddddddd")
-    console.log(limiteAPI)
     let listAnimal = [];
     try {
         const data = await getApiWithAuthorization(
@@ -138,7 +142,7 @@ async function findAnimalWithId(idAnimal) {
             `https://api.iucnredlist.org/api/v4/assessment/${idAnimal}`
         );
         console.log(dataAnimal.taxon.scientific_name);
-        return dataAnimal.taxon.scientific_name;
+        return {scientific_name: dataAnimal.taxon.scientific_name};
     } catch (error) {
         console.log("Server error");
         return null;
@@ -148,9 +152,7 @@ async function findAnimalWithId(idAnimal) {
 app.get('/country', (req, res) => {
     const language = req.query.language || req.headers['accept-language'].split(',')[0];
     const translationKey = languageMap[language] || language;
-    console.log(translationKey);
     getApi('https://restcountries.com/v3.1/all?fields=name,translations,cca2').then(data => {
-        data.sort((a, b) => a.name.common.localeCompare(b.name.common));
         const updatedData = data.map(country => {
             const translation = country.translations?.[translationKey];
             if (translation) {
@@ -162,17 +164,19 @@ app.get('/country', (req, res) => {
                 return country;
             }
         });
+        updatedData.sort((a, b) => a.name.common.localeCompare(b.name.common));
         res.send(updatedData);
     });
 });
 
 app.get('/ip', (req, res) => {
-  const ip = '185.161.44.242';
-  console.log(`Adresse IP détectée : ${ip}`);
-  const geo = geoip.lookup(ip);
-  const country = geo ? geo.country : 'Pays non déterminé';
+    //const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ip = '185.161.44.242'
+    console.log(`Adresse IP détectée : ${ip}`);
+    const geo = geoip.lookup(ip);
+    const country = geo ? geo.country : 'Pays non déterminé';
 
-  res.send(`Bonjour utilisateur de ${country}!`);
+    res.send(`Bonjour utilisateur de ${country}!`);
 });
 
 app.listen(3000, () => {

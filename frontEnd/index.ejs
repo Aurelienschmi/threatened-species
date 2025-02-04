@@ -1,31 +1,37 @@
-
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil</title>
     <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
     <h1>Bienvenue sur la liste des espèces menacées</h1>
     <nav>
-        <ul>          
-          <li><select name="countries" id="country-select" onchange="handleCountryChange()">
-            <option value=""> Choisissez un pays</option>
-            <% apiPays.forEach(country => { %>
-                <option value="<%= country.name.common %>" codeCountry="<%= country.cca2 %>"><%= country.name.common %></option>        <% }); %>
-        </select></li> 
+        <ul>
+            <li><select name="countries" id="country-select" onchange="handleCountryChange()">
+                    <option value=""> Choisissez un pays</option>
+                    <% apiPays.forEach(country=> { %>
+                        <option value="<%= country.name.common %>" codeCountry="<%= country.cca2 %>">
+                            <%= country.name.common %>
+                        </option>
+                        <% }); %>
+                </select></li>
 
-        <li><select name="number" id="number-select" onchange="handleNumberChange()">
-            <option value="6"> Nombre d'espèces </option>
-            <% for (let i = 5; i <= 15; i++) { %>
-                <option value="<%= i %>"><%= i %></option>
-            <% } %>
-        </select></li>  
+            <li><select name="number" id="number-select">
+                    <option value="6"> Nombre d'espèces </option>
+                    <% for (let i=5; i <=15; i++) { %>
+                        <option value="<%= i %>">
+                            <%= i %>
+                        </option>
+                        <% } %>
+                </select></li>
         </ul>
     </nav>
 
-    
+
 
 
     <div id="country-info">
@@ -35,8 +41,14 @@
     <div id="animal-info">
         <h2>Informations sur les espèces menacées :</h2>
         <ul id="animal-list">
-            <img id="no-data-image" src="/image/vraiFleur.png" alt="Aucune donnée disponible" style="width: 600; display: block; margin: 0 auto;">
+            <!-- Image affichée par défaut si aucune donnée -->
+            <li><img id="no-data-image" src="/image/vraiFleur.png" alt="Aucune donnée disponible"
+                    style="width: 600px; display: block; margin: 0 auto;"></li>
         </ul>
+
+        <!-- Liste des animaux, cachée au départ -->
+        <ul id="animal-list" style="display: none;"></ul>
+
     </div>
 
 
@@ -59,29 +71,63 @@
             fetch(`/animals/${countryCode}/${document.getElementById('number-select').value}`)
                 .then(response => response.json())
                 .then(data => {
-                    const animalInfoDiv = document.getElementById('animal-info');
-                    animalInfoDiv.innerHTML = JSON.stringify(data, null, 2); // Affiche les données JSON formatées
+                    const animalList = document.getElementById('animal-list');
+                    const noDataImage = document.getElementById('no-data-image');
+                    animalList.innerHTML = JSON.stringify(data, null, 2); // Affiche les données JSON formatées
 
-                    data.forEach(animal => {
-                        const listItem = document.createElement('li');
-                        listItem.innerHTML = `
-                        <strong>Nom :</strong> ${animal.name} <br>
-                        <strong>Statut :</strong> ${animal.status} <br>
-                        <strong>Description :</strong> ${animal.description || 'Aucune description disponible.'}
-                    `;
-                    if (animalList !== null || animalList !== undefined) {  
-                        animalList.appendChild(listItem);
+                    console.log(data)
+                    if (data.length > 0) {
+                        noDataImage.style.display = 'none';
+                        animalList.style.display = 'block';
+
+                        data.forEach(animal => {
+
+                            console.log("mmmm")
+                            console.log(animal)
+                            const taxon = animal.taxon;
+                            const assessments = animal.assessments;
+
+                            const commonNames = taxon.common_names
+                                .filter(name => name.main)
+                                .map(name => `${name.name} (${name.language})`)
+                                .join(", ");
+
+                            const assessmentsList = assessments.map(a => `
+                                <li>
+                                    <a href="${a.url}" target="_blank">Évaluation ${a.year_published} (${a.scopes.map(s => s.description.en).join(", ")})</a>
+                                </li>`).join("");
+
+
+                            const listItem = document.createElement('li');
+                            listItem.innerHTML = `
+                                <strong>Nom scientifique :</strong> <em>${animal.scientific_name}</em> <br>
+                                <strong>Nom scientifique :</strong> <em>${taxon.scientific_name}</em> <br>
+                                <strong>Noms communs :</strong> ${commonNames || "Non disponible"} <br>
+                                <strong>Classification :</strong> ${taxon.kingdom_name} > ${taxon.phylum_name} > ${taxon.class_name} > ${taxon.order_name} > ${taxon.family_name} <br>
+                                <strong>Évaluations IUCN :</strong> <ul>${assessmentsList || "<li>Aucune donnée</li>"}</ul>
+                            `;
+                            if (animalList !== null || animalList !== undefined) {
+                                animalList.appendChild(listItem);
+                            }
+
+                        });
                     }
-                        
+                    else {
+                        noDataImage.style.display = 'block';
+                        animalList.style.display = 'none';
+                    }
+
+
                 })
                 
-                .catch(error => {
+                .catch (error => {
                     console.error('Error fetching animal data:', error);
                 });
-
-            });
         }
+                
+
     </script>
-      
+
 </body>
+
 </html>
