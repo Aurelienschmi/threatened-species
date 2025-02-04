@@ -17,12 +17,29 @@
     </nav>
 
     
-    <select name="countries" id="country-select">
+    <select name="countries" id="country-select" onchange="handleCountryChange()">
         <option value="">--Please choose a country--</option>
         <% apiPays.forEach(country => { %>
-            <option value="<%= country.cca2 %>"><%= country.name.common %></option>
+            <option value="<%= country %>"><%= country %></option>
         <% }); %>
     </select>
+
+    <div id="country-info">
+        <h2>Informations sur le pays</h2>
+    </div>
+
+    <script>
+        function handleCountryChange() {
+            const select = document.getElementById('country-select');
+            const selectedValue = select.value;
+            if (selectedValue) {
+                alert('Selected country value: ' + selectedValue);
+            }else
+            { 
+                alert('Please choose a country');
+            }
+        }
+    </script>
       
 </body>
 </html>

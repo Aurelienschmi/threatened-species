@@ -24,7 +24,6 @@ async function getApi(pathURL) {
 }
 
 app.get('/', (req, res) => {
-    res.render("index");
 
     getApi('https://restcountries.com/v3.1/all?fields=name,translations,cca2').then(data => {
         data.sort((a, b) => a.name.common.localeCompare(b.name.common));
@@ -114,7 +113,6 @@ app.get('/country', (req, res) => {
         translationFra: country.translations?.fra?.common || ''
         };
     });
-
 
     res.send(updatedData);
 });
