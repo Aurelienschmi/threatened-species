@@ -79,7 +79,12 @@
                         noDataImage.style.display = 'none';
                         animalList.style.display = 'block';
 
+                        
+                        animalList.innerHTML = '';
                         data.forEach(animal => {
+
+                            // il faut suppriemr les données précédentes
+                            
 
 
                             const listItem = document.createElement('li');
