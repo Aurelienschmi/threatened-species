@@ -3,7 +3,7 @@ const axios = require("axios");
 const express = require("express");
 const app = express();
 const path = require("path");
-const fs = require('fs');
+const { execSync } = require("child_process");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../frontEnd"));
@@ -179,11 +179,15 @@ app.get('/ip', (req, res) => {
 });
 
 app.get('/version', async (req, res) => {
-    const rev = fs.readFileSync('.git/HEAD').toString().trim();
-    if (rev.indexOf(':') === -1) {
-        res.send(rev);
-    } else {
-        res.send(fs.readFileSync('.git/' + rev.substring(5)).toString().trim());
+    try {
+        const lastCommitInfo = execSync(
+            `git log -1 --pretty=format:{\\"commit\\":\\"%H\\",\\"author\\":\\"%an\\",\\"date\\":\\"%ad\\"}`
+        ).toString().trim();
+    
+        const commitData = JSON.parse(lastCommitInfo);
+        res.json(commitData);
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 });
 
