@@ -37,28 +37,56 @@ jobs:
 
       - name: Update ECS Service
         run: |
+          # Task definition family name in ECS (e.g., "my-ecs-task")
           TASK_FAMILY="my-ecs-task"
-          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY)
-          
-          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.containerDefinitions')
-          
-          NEW_CONTAINER_DEFINITIONS=$(echo $CONTAINER_DEFINITIONS | jq 'map(if .name == "threatened-species" then .image = "'$IMAGE_NAME':latest" else . end)')
-          
-          NEW_TASK_DEF=$(aws ecs register-task-definition \
-            --family $TASK_FAMILY \
-            --execution-role-arn $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.executionRoleArn') \
-            --task-role-arn $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.taskRoleArn') \
-            --cpu $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.cpu') \
-            --memory $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.memory') \
-            --network-mode $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.networkMode') \
-            --requires-compatibilities $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.requiresCompatibilities | join(" ")') \
-            --runtime-platform $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.runtimePlatform') \
-            --container-definitions "$NEW_CONTAINER_DEFINITIONS")
 
-          NEW_REVISION=$(echo $NEW_TASK_DEF | jq -r '.taskDefinition.revision')
+          # 1) Pull the existing task definition JSON
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_FAMILY")
+
+          # 2) Extract container definitions
+          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.containerDefinitions')
+
+          # 3) Replace the image URI in the container named "threatened-species"
+          #    (if your container name differs, adjust accordingly)
+          NEW_CONTAINER_DEFINITIONS=$(echo "$CONTAINER_DEFINITIONS" | jq 'map(
+            if .name == "threatened-species" 
+            then .image = "'$IMAGE_NAME':latest" 
+            else . end
+          )')
+
+          # 4) Extract other needed fields
+          EXECUTION_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.executionRoleArn')
+          TASK_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.taskRoleArn')
+          CPU=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.cpu')
+          MEMORY=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.memory')
+          NETWORK_MODE=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.networkMode')
+          REQUIRES_COMPAT=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.requiresCompatibilities | join(" ")')
+          
+          # Some older task defs won't have runtimePlatform at all; handle gracefully
+          RUNTIME_PLATFORM=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.runtimePlatform // empty')
+
+          # 5) Build our register-task-definition args
+          REGISTER_ARGS="--family $TASK_FAMILY \
+            --execution-role-arn $EXECUTION_ROLE_ARN \
+            --task-role-arn $TASK_ROLE_ARN \
+            --cpu $CPU \
+            --memory $MEMORY \
+            --network-mode $NETWORK_MODE \
+            --requires-compatibilities $REQUIRES_COMPAT \
+            --container-definitions '$NEW_CONTAINER_DEFINITIONS'"
+
+          # Only add runtimePlatform if it's non-empty (avoid "null" errors)
+          if [ -n "$RUNTIME_PLATFORM" ] && [ "$RUNTIME_PLATFORM" != "null" ]; then
+            REGISTER_ARGS="$REGISTER_ARGS --runtime-platform '$RUNTIME_PLATFORM'"
+          fi
+
+          # 6) Register the new revision
+          NEW_TASK_DEF=$(aws ecs register-task-definition $REGISTER_ARGS)
+          NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
           echo "New task definition revision: $NEW_REVISION"
 
+          # 7) Update the ECS service to use the new revision
           aws ecs update-service \
             --cluster threatened-species-cluster \
             --service threatened-species-service \
