@@ -74,7 +74,7 @@ jobs:
           aws ecs update-service \
             --cluster threatened-species-cluster \
             --service threatened-species-service \
-            --task-definition "${TASK_FAMILY}:${NEW_REVISION}" \
+            --task-definition "my-ecs-task:${NEW_REVISION}" \
             --force-new-deployment
 
           echo "Service updated to use task definition revision ${NEW_REVISION}."
