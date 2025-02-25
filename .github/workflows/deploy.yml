@@ -16,15 +16,15 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      
-      - name: Configure AWS Credentials (Secrets)
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
-      
+
       - name: Log in to Amazon ECR
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 454626435046.dkr.ecr.us-east-1.amazonaws.com
 
@@ -37,56 +37,57 @@ jobs:
 
       - name: Update ECS Service
         run: |
-          # Task definition family name in ECS (e.g., "my-ecs-task")
+          # Task definition family name in ECS
           TASK_FAMILY="my-ecs-task"
 
           # 1) Pull the existing task definition JSON
-          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_FAMILY")
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_FAMILY" --query "taskDefinition" --output json)
 
           # 2) Extract container definitions
-          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.containerDefinitions')
+          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq '.containerDefinitions')
 
-          # 3) Replace the image URI in the container named "threatened-species"
-          #    (if your container name differs, adjust accordingly)
-          NEW_CONTAINER_DEFINITIONS=$(echo "$CONTAINER_DEFINITIONS" | jq 'map(
-            if .name == "threatened-species" 
-            then .image = "'$IMAGE_NAME':latest" 
-            else . end
-          )')
+          # 3) Update the image URI for container "threatened-species"
+          NEW_CONTAINER_DEFINITIONS=$(echo "$CONTAINER_DEFINITIONS" | jq --arg IMAGE_NAME "$IMAGE_NAME:latest" '
+            map(if .name == "threatened-species" then .image = $IMAGE_NAME else . end)
+          ')
 
           # 4) Extract other needed fields
-          EXECUTION_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.executionRoleArn')
-          TASK_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.taskRoleArn')
-          CPU=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.cpu')
-          MEMORY=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.memory')
-          NETWORK_MODE=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.networkMode')
-          REQUIRES_COMPAT=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.requiresCompatibilities | join(" ")')
-          
+          EXECUTION_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.executionRoleArn')
+          TASK_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskRoleArn')
+          CPU=$(echo "$TASK_DEFINITION" | jq -r '.cpu')
+          MEMORY=$(echo "$TASK_DEFINITION" | jq -r '.memory')
+          NETWORK_MODE=$(echo "$TASK_DEFINITION" | jq -r '.networkMode')
+          REQUIRES_COMPAT=$(echo "$TASK_DEFINITION" | jq -r '.requiresCompatibilities | join(" ")')
+
           # Some older task defs won't have runtimePlatform at all; handle gracefully
-          RUNTIME_PLATFORM=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.runtimePlatform // empty')
+          RUNTIME_PLATFORM=$(echo "$TASK_DEFINITION" | jq -r '.runtimePlatform // empty')
 
-          # 5) Build our register-task-definition args
-          REGISTER_ARGS="--family $TASK_FAMILY \
-            --execution-role-arn $EXECUTION_ROLE_ARN \
-            --task-role-arn $TASK_ROLE_ARN \
-            --cpu $CPU \
-            --memory $MEMORY \
-            --network-mode $NETWORK_MODE \
-            --requires-compatibilities $REQUIRES_COMPAT \
-            --container-definitions '$NEW_CONTAINER_DEFINITIONS'"
+          # 5) Create the new task definition JSON file
+          cat <<EOF > task-def.json
+          {
+            "family": "$TASK_FAMILY",
+            "executionRoleArn": "$EXECUTION_ROLE_ARN",
+            "taskRoleArn": "$TASK_ROLE_ARN",
+            "cpu": "$CPU",
+            "memory": "$MEMORY",
+            "networkMode": "$NETWORK_MODE",
+            "requiresCompatibilities": ["$REQUIRES_COMPAT"],
+            "containerDefinitions": $NEW_CONTAINER_DEFINITIONS
+          }
+          EOF
 
-          # Only add runtimePlatform if it's non-empty (avoid "null" errors)
+          # 6) If runtimePlatform exists, add it to the JSON
           if [ -n "$RUNTIME_PLATFORM" ] && [ "$RUNTIME_PLATFORM" != "null" ]; then
-            REGISTER_ARGS="$REGISTER_ARGS --runtime-platform '$RUNTIME_PLATFORM'"
+            jq --argjson platform "$RUNTIME_PLATFORM" '. + {runtimePlatform: $platform}' task-def.json > tmp.json && mv tmp.json task-def.json
           fi
 
-          # 6) Register the new revision
-          NEW_TASK_DEF=$(aws ecs register-task-definition $REGISTER_ARGS)
+          # 7) Register the new task definition
+          NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://task-def.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
           echo "New task definition revision: $NEW_REVISION"
 
-          # 7) Update the ECS service to use the new revision
+          # 8) Update the ECS service to use the new revision
           aws ecs update-service \
             --cluster threatened-species-cluster \
             --service threatened-species-service \
