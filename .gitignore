@@ -138,3 +138,6 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
+
+# Task Definition
+task-definition.json

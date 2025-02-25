@@ -1,0 +1,69 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS Credentials (Secrets)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Log in to Amazon ECR
+        run: aws ecr get-login-password --region us-east-1 \
+          | docker login --username AWS \
+            --password-stdin 454626435046.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Build and Push Docker image
+        run: |
+          IMAGE_NAME="454626435046.dkr.ecr.us-east-1.amazonaws.com/threatened-species"
+          docker build -t threatened-species .
+          docker tag threatened-species:latest $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:latest
+
+      - name: Update ECS Service
+        run: |
+          TASK_FAMILY="my-ecs-task"
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY)
+          
+          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.containerDefinitions')
+          
+          NEW_CONTAINER_DEFINITIONS=$(echo $CONTAINER_DEFINITIONS | jq 'map(if .name == "threatened-species" then .image = "'$IMAGE_NAME':latest" else . end)')
+          
+          NEW_TASK_DEF=$(aws ecs register-task-definition \
+            --family $TASK_FAMILY \
+            --execution-role-arn $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.executionRoleArn') \
+            --task-role-arn $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.taskRoleArn') \
+            --cpu $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.cpu') \
+            --memory $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.memory') \
+            --network-mode $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.networkMode') \
+            --requires-compatibilities $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.requiresCompatibilities | join(" ")') \
+            --runtime-platform $(echo "$TASK_DEFINITION" | jq -r '.taskDefinition.runtimePlatform') \
+            --container-definitions "$NEW_CONTAINER_DEFINITIONS")
+
+          NEW_REVISION=$(echo $NEW_TASK_DEF | jq -r '.taskDefinition.revision')
+
+          echo "New task definition revision: $NEW_REVISION"
+
+          aws ecs update-service \
+            --cluster threatened-species-cluster \
+            --service threatened-species-service \
+            --task-definition "${TASK_FAMILY}:${NEW_REVISION}" \
+            --force-new-deployment
+
+          echo "Service updated to use task definition revision ${NEW_REVISION}."

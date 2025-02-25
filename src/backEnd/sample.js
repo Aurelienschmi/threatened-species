@@ -3,6 +3,7 @@ const axios = require("axios");
 const express = require("express");
 const app = express();
 const path = require("path");
+const fs = require('fs');
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../frontEnd"));
@@ -175,6 +176,15 @@ app.get('/ip', (req, res) => {
     const country = geo ? geo.country : 'Pays non déterminé';
 
     res.send(`Bonjour utilisateur de ${country}!`);
+});
+
+app.get('/version', async (req, res) => {
+    const rev = fs.readFileSync('.git/HEAD').toString().trim();
+    if (rev.indexOf(':') === -1) {
+        res.send(rev);
+    } else {
+        res.send(fs.readFileSync('.git/' + rev.substring(5)).toString().trim());
+    }
 });
 
 app.listen(3000, () => {
