@@ -38,11 +38,7 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_NAME="454626435046.dkr.ecr.us-east-1.amazonaws.com/threatened-species"
-          docker build \
-            --build-arg COMMIT_ID=${{ steps.git-info.outputs.commit_id }} \
-            --build-arg COMMIT_AUTHOR=${{ steps.git-info.outputs.commit_author }} \
-            --build-arg COMMIT_DATE=${{ steps.git-info.outputs.commit_date }} \
-            -t threatened-species .
+          docker build --build-arg COMMIT_ID=${{ steps.git-info.outputs.commit_id }} --build-arg COMMIT_AUTHOR=${{ steps.git-info.outputs.commit_author }} --build-arg COMMIT_DATE=${{ steps.git-info.outputs.commit_date }} -t threatened-species .
           docker tag threatened-species:latest $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
 
