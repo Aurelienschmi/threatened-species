@@ -28,10 +28,21 @@ jobs:
       - name: Log in to Amazon ECR
         run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 454626435046.dkr.ecr.us-east-1.amazonaws.com
 
-      - name: Build and Push Docker image
+      - name: Get Git commit info
+        id: git-info
+        run: |
+          echo "::set-output name=commit_id::$(git rev-parse HEAD)"
+          echo "::set-output name=commit_author::$(git log -1 --pretty=format:'%an')"
+          echo "::set-output name=commit_date::$(git log -1 --pretty=format:'%ad' --date=iso)"
+          
+      - name: Build Docker image
         run: |
           IMAGE_NAME="454626435046.dkr.ecr.us-east-1.amazonaws.com/threatened-species"
-          docker build -t threatened-species .
+          docker build \
+            --build-arg COMMIT_ID=${{ steps.git-info.outputs.commit_id }} \
+            --build-arg COMMIT_AUTHOR=${{ steps.git-info.outputs.commit_author }} \
+            --build-arg COMMIT_DATE=${{ steps.git-info.outputs.commit_date }} \
+            -t threatened-species .
           docker tag threatened-species:latest $IMAGE_NAME:latest
           docker push $IMAGE_NAME:latest
 
