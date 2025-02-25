@@ -52,7 +52,7 @@ jobs:
           ')
 
           # 4) Extract other needed fields
-          EXECUTION_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.executionRoleArn')
+          EXECUTION_ROLE_ARN="arn:aws:iam::454626435046:role/LabRole"
           TASK_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskRoleArn')
           CPU=$(echo "$TASK_DEFINITION" | jq -r '.cpu')
           MEMORY=$(echo "$TASK_DEFINITION" | jq -r '.memory')
