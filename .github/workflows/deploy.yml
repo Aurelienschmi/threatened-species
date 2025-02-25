@@ -37,57 +37,40 @@ jobs:
 
       - name: Update ECS Service
         run: |
-          # Task definition family name in ECS
-          TASK_FAMILY="my-ecs-task"
-
-          # 1) Pull the existing task definition JSON
-          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_FAMILY" --query "taskDefinition" --output json)
-
-          # 2) Extract container definitions
-          CONTAINER_DEFINITIONS=$(echo "$TASK_DEFINITION" | jq '.containerDefinitions')
-
-          # 3) Update the image URI for container "threatened-species"
-          NEW_CONTAINER_DEFINITIONS=$(echo "$CONTAINER_DEFINITIONS" | jq --arg IMAGE_NAME "$IMAGE_NAME:latest" '
-            map(if .name == "threatened-species" then .image = $IMAGE_NAME else . end)
-          ')
-
-          # 4) Extract other needed fields
-          EXECUTION_ROLE_ARN="arn:aws:iam::454626435046:role/LabRole"
-          TASK_ROLE_ARN=$(echo "$TASK_DEFINITION" | jq -r '.taskRoleArn')
-          CPU=$(echo "$TASK_DEFINITION" | jq -r '.cpu')
-          MEMORY=$(echo "$TASK_DEFINITION" | jq -r '.memory')
-          NETWORK_MODE=$(echo "$TASK_DEFINITION" | jq -r '.networkMode')
-          REQUIRES_COMPAT=$(echo "$TASK_DEFINITION" | jq -r '.requiresCompatibilities | join(" ")')
-
-          # Some older task defs won't have runtimePlatform at all; handle gracefully
-          RUNTIME_PLATFORM=$(echo "$TASK_DEFINITION" | jq -r '.runtimePlatform // empty')
-
-          # 5) Create the new task definition JSON file
+          # 1) Create the new task definition JSON file
           cat <<EOF > task-def.json
           {
-            "family": "$TASK_FAMILY",
-            "executionRoleArn": "$EXECUTION_ROLE_ARN",
-            "taskRoleArn": "$TASK_ROLE_ARN",
-            "cpu": "$CPU",
-            "memory": "$MEMORY",
-            "networkMode": "$NETWORK_MODE",
-            "requiresCompatibilities": ["$REQUIRES_COMPAT"],
-            "containerDefinitions": $NEW_CONTAINER_DEFINITIONS
+            "family": "my-ecs-task",
+            "executionRoleArn": "arn:aws:iam::454626435046:role/LabRole",
+            "networkMode": "awsvpc",
+            "containerDefinitions": [
+              {
+                "name": "threatened-species",
+                "image": "454626435046.dkr.ecr.us-east-1.amazonaws.com/threatened-species",
+                "essential": true,
+                "portMappings": [
+                  {
+                    "containerPort": 3000,
+                    "hostPort": 3000
+                  }
+                ]
+              }
+            ],
+            "requiresCompatibilities": [
+              "FARGATE"
+            ],
+            "cpu": "256",
+            "memory": "512"
           }
           EOF
 
-          # 6) If runtimePlatform exists, add it to the JSON
-          if [ -n "$RUNTIME_PLATFORM" ] && [ "$RUNTIME_PLATFORM" != "null" ]; then
-            jq --argjson platform "$RUNTIME_PLATFORM" '. + {runtimePlatform: $platform}' task-def.json > tmp.json && mv tmp.json task-def.json
-          fi
-
-          # 7) Register the new task definition
+          # 2) Register the new task definition
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://task-def.json)
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
           echo "New task definition revision: $NEW_REVISION"
 
-          # 8) Update the ECS service to use the new revision
+          # 3) Update the ECS service to use the new revision
           aws ecs update-service \
             --cluster threatened-species-cluster \
             --service threatened-species-service \
